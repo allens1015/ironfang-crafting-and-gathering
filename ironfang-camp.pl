@@ -115,7 +115,6 @@ sub process_data {
     my $mod = $i-2;
     my $total_money_generated = 0;
     #for each npc
-    print "testing $mod:\n";
     foreach my $row (@data_arr) {
       #split the data formatting up into level/teml
       $row =~ /(\d+)\:(\d+)/;
