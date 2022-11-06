@@ -19,13 +19,10 @@ foreach my $arg (@ARGV) {
   if($arg =~ /--c=(.*)/) { $crafting_potential = $1; }
 }
 
-#ok so what i want to see is table outputs-
-#i want npc craft/gather, pc craft/gather, npc+pc craft+gather for terrain mods -2 to 6 for gathering and -2 to 2 for crafting
-#so we need to get the level/teml aka row/col of earn income and tally up the totals for each member
-#lets focus on one, npc gather
-
 if($gathering_potential && $crafting_potential) {
   #midpoint
+  #basically create a 1000-point bell curve that represents percentages to 0.1%- find the values of gathering and crafting at 100/0% of each, step one up by 0.1% and one down by 0.1%, get the values
+  #then record the diffs between those values- the closest point to 0 will be the intersection
   my $step = 1;
   my @diff_arr = ();
   for(my $i = 1000; $i >= 0; $i -= $step) {
@@ -41,6 +38,8 @@ if($gathering_potential && $crafting_potential) {
   my $correct_index = 0;
   for my $i (0..scalar @diff_arr-1) {
     if($diff_arr[$i] < 0) {
+      #for SOME reason, array ordering i think, the array here is backwards- i=715 is really i=286, array length-1 flipped kind of logic. real_i tracks this
+      #get the 2 points above and below the 0 line, figure out which is closer, and that's our answer
       my $real_i = abs(1001-$i);
       my $below_zero = $diff_arr[$real_i];
       my $above_zero = $diff_add[$real_i-1];
@@ -52,6 +51,8 @@ if($gathering_potential && $crafting_potential) {
       last;
     }
   }
+  #/10 because the percent is 3 sig figs instead of 2
+  #math out and display the derived values
   my $gathering_percent = $correct_index/10;
   my $crafting_percent = 100-$gathering_percent;
   my $gathering_actual = $gathering_potential * ($gathering_percent/100);
@@ -114,10 +115,14 @@ sub process_data {
     my $mod = $i-2;
     my $total_money_generated = 0;
     #for each npc
+    print "testing $mod:\n";
     foreach my $row (@data_arr) {
       #split the data formatting up into level/teml
       $row =~ /(\d+)\:(\d+)/;
-      my $level = int($1) + $i;
+      my $level = int($1) + $mod;
+      if($level < 0) {
+        $level = 0;
+      }
       my $teml = int($2);
       #get the val and sum it to the running tally
       my $money_generated = $earn_income_arr[$level][$teml];
