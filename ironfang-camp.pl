@@ -59,7 +59,16 @@ if($gathering_potential && $crafting_potential) {
   my $crafting_actual = $crafting_potential * ($crafting_percent/100);
   print "Intersect at:\n";
   print "Gathering $gathering_actual gp // $gathering_percent%\n";
-  print "Crafting $crafting_actual gp // $crafting_percent%\n";
+  print "Crafting $crafting_actual gp // $crafting_percent%\n\n";
+  for my $i (0..scalar @diff_arr-1) {
+    if($i == 0 or $i % 100 == 0) {
+      my $g_per_inter = (1000-$i)/10;
+      my $c_per_inter = $i/10;
+      my $g_actual_inter = $gathering_potential * ($g_per_inter/100);
+      my $c_actual_inter = $crafting_potential * ($c_per_inter/100);
+      print "G/C $g_per_inter/$c_per_inter: $g_actual_inter // $c_actual_inter\n";
+    }
+  }
 }
 else {
   #gathering
