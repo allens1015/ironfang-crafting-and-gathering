@@ -11,12 +11,14 @@ my $pc_craft_data = &get_json("camp-data-pc-craft.json");
 my $gather_mod_limit = 8;
 my $craft_mod_limit = 4;
 
-my ($gathering_potential,$crafting_potential);
+my ($gathering_potential,$crafting_potential,$material_cost,$labor_cost);
 
 # parsing arg input
 foreach my $arg (@ARGV) {
 	if($arg =~ /--g=(.*)/) { $gathering_potential = $1; }
   if($arg =~ /--c=(.*)/) { $crafting_potential = $1; }
+  if($arg =~ /--m=(.*)/) { $material_cost = $1; }
+  if($arg =~ /--l=(.*)/) { $labor_cost = $1; }
 }
 
 if($gathering_potential && $crafting_potential) {
@@ -53,21 +55,59 @@ if($gathering_potential && $crafting_potential) {
   }
   #/10 because the percent is 3 sig figs instead of 2
   #math out and display the derived values
+
   my $gathering_percent = $correct_index/10;
   my $crafting_percent = 100-$gathering_percent;
   my $gathering_actual = $gathering_potential * ($gathering_percent/100);
   my $crafting_actual = $crafting_potential * ($crafting_percent/100);
+
+  my $material_labor_ratio = 0;
+  my $ml_actual_ratio = 0;
+  my $ml_ratio_diff = 1;
+  my $ml_ratio_correct_index = 0;
+  my $ml_ratio_correct_m;
+  my $ml_ratio_correct_l;
+  if($material_cost && $labor_cost) {
+    $material_labor_ratio = $material_cost/$labor_cost;
+    $ml_ratio_correct_m = $material_cost;
+    $ml_ratio_correct_l = $labor_cost;
+  }
+  
   print "Intersect at:\n";
   print "Gathering $gathering_actual gp // $gathering_percent%\n";
   print "Crafting $crafting_actual gp // $crafting_percent%\n\n";
+  #for every entry in the array of diffs
   for my $i (0..scalar @diff_arr-1) {
+    my $g_per_inter = (1000-$i)/10;
+    my $c_per_inter = $i/10;
+    #calc the actual vals
+    my $g_actual_inter = $gathering_potential * ($g_per_inter/100);
+    my $c_actual_inter = $crafting_potential * ($c_per_inter/100);
+    #if you provided m/l
+    if($material_labor_ratio > 0 && $c_actual_inter > 0) {
+      #find the ratio of the current index of m/l
+      $ml_actual_ratio = $g_actual_inter/$c_actual_inter;
+    }
+    my $ml_abs_diff = abs($material_labor_ratio - $ml_actual_ratio);
+    # print "TEST: ml abs diff: $ml_abs_diff\n";
+    # print "=======TEST: ratio diff: $ml_ratio_diff\n";
+    if($ml_abs_diff < $ml_ratio_diff) {
+      # print "=======SETTING ml_ratio_diff to $ml_abs_diff\n";
+      $ml_ratio_diff = $ml_abs_diff;
+      $ml_ratio_correct_index = $i;
+      $ml_ratio_correct_m = $g_actual_inter;
+      $ml_ratio_correct_l = $c_actual_inter;
+    }
+
     if($i == 0 or $i % 100 == 0) {
-      my $g_per_inter = (1000-$i)/10;
-      my $c_per_inter = $i/10;
-      my $g_actual_inter = $gathering_potential * ($g_per_inter/100);
-      my $c_actual_inter = $crafting_potential * ($c_per_inter/100);
       print "G/C $g_per_inter/$c_per_inter: $g_actual_inter // $c_actual_inter\n";
     }
+  }
+  if($ml_ratio_correct_m && $ml_ratio_correct_l) {
+    # print "\nTesting ratios (M/L): $material_labor_ratio\n";
+    print "\nOptimal ratio split for project: G/C: $ml_ratio_correct_m // $ml_ratio_correct_l\n";
+    my $time_to_complete = $material_cost / $ml_ratio_correct_m;
+    print "Time to complete: $time_to_complete days\n\n";
   }
 }
 else {
