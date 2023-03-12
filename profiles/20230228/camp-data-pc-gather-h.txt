@@ -1,0 +1,12 @@
+["0:0","0:0","0:0","2:1","2:1","3:1","6:1","6:0","6:1","6:1","6:0","6:1","5:1"]
+
+// 3x 0:0 commoner
+// 2x 2:1 tracker
+// 1x 3:1 guide
+// 1x 6:1 aunie
+// 1x 6:0 brock
+// 1x 6:1 earl
+// 1x 6:1 ace
+// 1x 6:0 habib
+// 1x 6:1 english
+// 1x 5:1 squirrelkicker

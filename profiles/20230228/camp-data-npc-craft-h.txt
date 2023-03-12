@@ -1,0 +1,11 @@
+["3:1","3:1","3:1","3:1","3:1","3:1","3:1","3:1","3:1","3:1","3:0","4:0"]
+// 4x 3:1 l3 apprentices, magical
+// 3x 3:1 l3 apprentices, alchemical
+// 1x 3:1 l3 acolyte, magial
+// 1x 3:1 ron, alchemical
+// 1x 3:1 kining, magical
+// 1x 3:0 rhyna
+// 1x 4:0 abby
+
+
+// 2x 3:0 l3 hunters (taidel/lirosa) are removed to be guards
