@@ -11,14 +11,33 @@ my $pc_craft_data = &get_json("camp-data-pc-craft.json");
 my $gather_mod_limit = 8;
 my $craft_mod_limit = 4;
 
+# bonus: calculate the gp reqs for food and shelter
+my ($gathering_hex_value, $crafting_hex_value) = 0;
+my ($feeding_count, $sheltering_count) = 0;
+my @food_costs = (0.05, 0.2, 0.3);
+my @shelter_costs = (0.2, 0.3, 0.5);
+
+
 my ($gathering_potential,$crafting_potential,$material_cost,$labor_cost);
 
 # parsing arg input
 foreach my $arg (@ARGV) {
+  # gathering gp value
 	if($arg =~ /--g=(.*)/) { $gathering_potential = $1; }
+  # gathering hex value
+  if($arg =~ /--gx=(.*)/) { $gathering_hex_value = $1; }
+  # crafting gp value
   if($arg =~ /--c=(.*)/) { $crafting_potential = $1; }
+  # crafting hex value
+  if($arg =~ /--cx=(.*)/) { $crafting_hex_value = $1; }
+  # material cost for project
   if($arg =~ /--m=(.*)/) { $material_cost = $1; }
+  # labor cost for project
   if($arg =~ /--l=(.*)/) { $labor_cost = $1; }
+  # number in party needing food
+  if($arg =~ /--f=(.*)/) { $feeding_count = $1; }
+  # number in party needing shelter
+  if($arg =~ /--s=(.*)/) { $sheltering_count = $1; }
 }
 
 if($gathering_potential && $crafting_potential) {
@@ -109,6 +128,20 @@ if($gathering_potential && $crafting_potential) {
     my $time_to_complete = $material_cost / $ml_ratio_correct_m;
     print "Time to complete: $time_to_complete days\n\n";
   }
+}
+elsif($feeding_count > 0 || $sheltering_count > 0) {
+  my $selected_food_cost = $food_costs[0];
+  if(int($gathering_hex_value) eq -1) { $selected_food_cost = ($food_costs[1]); }
+  elsif(int($gathering_hex_value) < -1) { $selected_food_cost = ($food_costs[2]); }
+
+  my $selected_shelter_cost = $shelter_costs[0];
+  if(int($crafting_hex_value) eq -1) { $selected_shelter_cost = ($shelter_costs[1]); }
+  elsif(int($crafting_hex_value) < -1) { $selected_shelter_cost = ($shelter_costs[2]); }
+
+  my $total_food_cost = $feeding_count * $selected_food_cost;
+  my $total_sheltering_cost = $sheltering_count * $selected_shelter_cost;
+
+  print "totals:\nfood: $total_food_cost gp\n    $selected_food_cost gp per unit\nshelter: $total_sheltering_cost gp\n    $selected_shelter_cost gp per unit\n";
 }
 else {
   #gathering
