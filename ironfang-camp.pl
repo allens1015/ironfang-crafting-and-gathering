@@ -10,12 +10,13 @@ my $pc_gather_data = &get_json("camp-data-pc-gather.json");
 my $pc_craft_data = &get_json("camp-data-pc-craft.json");
 my $gather_mod_limit = 8;
 my $craft_mod_limit = 4;
+my $fatigue_percent = 0;
 
 # bonus: calculate the gp reqs for food and shelter
 my ($gathering_hex_value, $crafting_hex_value) = 0;
 my ($feeding_count, $sheltering_count) = 0;
-my @food_costs = (0.05, 0.2, 0.3);
-my @shelter_costs = (0.2, 0.3, 0.5);
+my @food_costs = (0.2, 0.3, 0.5);
+my @shelter_costs = (0.3, 0.5, 0.7);
 
 
 my ($gathering_potential,$crafting_potential,$material_cost,$labor_cost);
@@ -38,6 +39,8 @@ foreach my $arg (@ARGV) {
   if($arg =~ /--f=(.*)/) { $feeding_count = $1; }
   # number in party needing shelter
   if($arg =~ /--s=(.*)/) { $sheltering_count = $1; }
+  # percentage to reduce totals for fatigue rating
+  if($arg =~ /--p=(.*)/) { $fatigue_percent = $1; }
 }
 
 if($gathering_potential && $crafting_potential) {
@@ -145,8 +148,8 @@ elsif($feeding_count > 0 || $sheltering_count > 0) {
 }
 else {
   #gathering
-  my @npc_gather_output = &process_data($npc_gather_data,$earn_income_data,$gather_mod_limit);
-  my @pc_gather_output = &process_data($pc_gather_data,$earn_income_data,$gather_mod_limit);
+  my @npc_gather_output = &process_data($npc_gather_data,$earn_income_data,$gather_mod_limit,$fatigue_percent);
+  my @pc_gather_output = &process_data($pc_gather_data,$earn_income_data,$gather_mod_limit,$fatigue_percent);
   my @pc_npc_gather_output = ();
   for my $i(0..$gather_mod_limit) {
     my $combined_val = $npc_gather_output[$i] + $pc_gather_output[$i];
@@ -154,8 +157,8 @@ else {
   }
 
   #crafting
-  my @npc_craft_output = &process_data($npc_craft_data,$earn_income_data,$craft_mod_limit);
-  my @pc_craft_output = &process_data($pc_craft_data,$earn_income_data,$craft_mod_limit);
+  my @npc_craft_output = &process_data($npc_craft_data,$earn_income_data,$craft_mod_limit,$fatigue_percent);
+  my @pc_craft_output = &process_data($pc_craft_data,$earn_income_data,$craft_mod_limit,$fatigue_percent);
   my @pc_npc_craft_output = ();
   for my $i(0..$craft_mod_limit) {
     my $combined_val = $npc_craft_output[$i] + $pc_craft_output[$i];
@@ -186,10 +189,11 @@ sub display {
 
 # ----------
 sub process_data {
-  my ($scalar_data,$scalar_earn_income_data,$output_length) = @_;
+  my ($scalar_data,$scalar_earn_income_data,$output_length,$fatigue_percent) = @_;
   my @data_arr = @{$scalar_data};
   my @earn_income_arr = @{$scalar_earn_income_data};
   my @output_money = ();
+  my $fatigue_scale = 1-$fatigue_percent;
 
   #for every terrain level up to output length, which is 4 or 8
   for my $i (0..$output_length) {
@@ -209,7 +213,8 @@ sub process_data {
       my $money_generated = $earn_income_arr[$level][$teml];
       $total_money_generated += $money_generated;
     }
-    push(@output_money,$total_money_generated);
+
+    push(@output_money,($total_money_generated * $fatigue_scale));
   }
 
   return @output_money;
